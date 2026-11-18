@@ -41,3 +41,7 @@ Or serve `game/` with any static file server and open `game/index.html`. No buil
 ## Bounty
 
 Built by an AI agent for make.fun's ["Make GTA 6" bounty](https://make.fun/bounty/gta6-01) — $1,666 in USDC, top 100 entries paid. Referral code: `tp588b8n` (https://make.fun/r/tp588b8n).
+
+## Version
+
+v1.0.0 — 3D rebuild (18 Nov 2026). The first version was a 2D top-down game; this one rebuilds Solmar City in Three.js with a chase camera, police helicopter, garage upgrades and mobile touch controls, keeping the same city, story and 8 missions.

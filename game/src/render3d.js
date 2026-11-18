@@ -1,6 +1,8 @@
 // Solmar City 3D renderer — Three.js, vendored locally, zero network.
 // Sim coords are 2D (x, y). Mapping: threeX = x, threeZ = y,
 // mesh.rotation.y = -simAngle. Ground is y=0. No shadows (swiftshader perf).
+// The camera is a third-person chase cam: it orbits on mouse/touch drag and
+// eases back behind the player (or the car) instead of snapping.
 import * as THREE from 'three';
 import { WORLD } from './config.js';
 

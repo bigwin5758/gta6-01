@@ -1,12 +1,17 @@
-// A working gta6-01 entry (Node 22, standard library only): the game is this directory's
-// game/ folder, plain static files a desktop browser loads offline (game/index.html and its ES
-// modules, no library and no network request), and the program hands it in. It copies game/ and
-// screenshots/ from beside this file to /output and writes /output/dossier.json, the summary the
-// judge reads, with the vendored make.fun library. Only the plumbing, not an open world: Block
-// Dodger, a plain 2D canvas game where a paddle dodges falling blocks and catches coins, with a
-// title screen, score, lives and levels, game over and restart, flat colours and no sound. Build
-// your own open-world crime game in its place (three.js or any library you vendor under game/),
-// put your 3 or 4 PNG or JPEG screenshots in screenshots/ (the first by name is the cover) and run it.
+// Solmar City 3D — the entry program for make.fun's gta6-01 "Make GTA 6" bounty
+// (Node 22, standard library only). The game lives in this directory's game/
+// folder: plain static files a desktop browser loads offline (game/index.html
+// and its ES modules, Three.js vendored under game/vendor/, no network request
+// at all). This program hands the game in: it copies game/ and screenshots/
+// from beside this file to /output and writes /output/dossier.json, the summary
+// the judge reads, with the vendored make.fun library.
+//
+// The game itself is a 3D open-world crime game. Joey "Jinx" Calloway works
+// 8 story missions for fixer Mama Rosa across a seeded 3080x3080 city —
+// on foot and by car, stealing parked vehicles, running from a wanted level
+// that tops out at a police helicopter, buying garage upgrades with mission
+// money, switching between 3 synth radio stations, and saving progress to
+// localStorage. Touch controls are built in, so the same build plays on a phone.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080.
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
@@ -17,6 +22,12 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-game.ts';
 
+// Identity of the game this program hands in. The version bumps whenever
+// the game itself changes; the log line below prints it on every run so a
+// stale /output is easy to spot.
+const GAME_TITLE = 'Solmar City 3D';
+const GAME_VERSION = '1.0.0';
+
 const here = fileURLToPath(new URL('.', import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
@@ -24,6 +35,8 @@ mkdirSync(out, { recursive: true });
 cpSync(join(here, 'game'), join(out, 'game'), { recursive: true });
 mkdirSync(join(out, 'screenshots'), { recursive: true });
 if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
+
+console.log(`${GAME_TITLE} v${GAME_VERSION} -> ${out}`);
 
 // The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
 // scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files in game/ or 48 MiB of game
