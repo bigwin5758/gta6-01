@@ -2,18 +2,176 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Block Dodger</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>Solmar City 3D — Open-World Crime</title>
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #11141b; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #14161e; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; overscroll-behavior: none; }
   #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-  /* Read aloud, never shown: the status line screen readers announce. */
   #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .panel { background: rgba(16, 18, 26, 0.78); color: #f4f1e6; border: 1px solid rgba(244, 241, 230, 0.16); border-radius: 10px; }
+  #hud { position: fixed; top: 12px; left: 12px; padding: 10px 14px; min-width: 230px; z-index: 5; pointer-events: none; }
+  #hud .row { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+  #hud .label { font-size: 11px; letter-spacing: 0.12em; color: #b8b2a0; width: 52px; }
+  #healthbar { flex: 1; height: 12px; background: #2a2d38; border-radius: 6px; overflow: hidden; }
+  #healthfill { height: 100%; background: #e5534b; width: 100%; transition: width 0.2s; }
+  #money { font-size: 20px; font-weight: 700; color: #f2c94c; }
+  #stars { font-size: 20px; letter-spacing: 2px; color: #ffd94a; min-height: 24px; }
+  #stars .off { color: #555a68; }
+  #objective { font-size: 13px; color: #f4f1e6; margin-top: 6px; line-height: 1.35; }
+  #weapon { font-size: 12px; color: #b8b2a0; margin-top: 4px; }
+  #radio-line { font-size: 12px; color: #7fc4d4; margin-top: 2px; }
+  #minimap-wrap { position: fixed; top: 12px; right: 12px; z-index: 5; padding: 6px; }
+  #minimap { display: block; width: 170px; height: 170px; border-radius: 8px; }
+  #toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); padding: 10px 22px; font-size: 16px; font-weight: 600; z-index: 6; opacity: 0; transition: opacity 0.3s; pointer-events: none; text-align: center; max-width: calc(100vw - 40px); }
+  #toast.show { opacity: 1; }
+  #hint { position: fixed; bottom: 10px; left: 12px; z-index: 5; font-size: 12px; color: #d8d2c0; padding: 7px 12px; pointer-events: none; }
+  #prompt { position: fixed; bottom: 52px; left: 50%; transform: translateX(-50%); z-index: 5; font-size: 15px; font-weight: 600; padding: 8px 18px; pointer-events: none; white-space: nowrap; }
+  .overlay { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; background: rgba(8, 10, 16, 0.55); }
+  .overlay.hidden, .hidden { display: none !important; }
+  .card { max-width: 560px; width: calc(100% - 40px); padding: 28px 32px; text-align: center; max-height: calc(100vh - 40px); overflow-y: auto; }
+  .card h1 { margin: 0 0 4px; font-size: 44px; letter-spacing: 0.06em; color: #ffd94a; text-shadow: 0 3px 0 #b3541e, 0 6px 18px rgba(0,0,0,0.6); }
+  .card h2 { margin: 0 0 12px; font-size: 15px; font-weight: 600; letter-spacing: 0.28em; color: #7fc4d4; }
+  .card p { font-size: 15px; line-height: 1.55; color: #e8e2d0; margin: 10px 0; }
+  .card .controls { font-size: 13px; color: #b8b2a0; line-height: 1.7; margin: 14px 0; }
+  .card .controls b { color: #f4f1e6; }
+  .btn { display: inline-block; margin: 6px 4px 0; padding: 12px 26px; font-size: 16px; font-weight: 700; color: #14161e; background: #ffd94a; border: none; border-radius: 8px; cursor: pointer; }
+  .btn:hover { background: #ffe27a; }
+  .btn.ghost { background: transparent; color: #f4f1e6; border: 1px solid rgba(244,241,230,0.4); }
+  .btn.ghost:hover { background: rgba(244,241,230,0.12); }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+  #mission-card { position: fixed; top: 22%; left: 50%; transform: translateX(-50%); z-index: 7; text-align: center; padding: 18px 34px; pointer-events: none; opacity: 0; transition: opacity 0.4s; max-width: calc(100vw - 40px); }
+  #mission-card.show { opacity: 1; }
+  #mission-card h3 { margin: 0; font-size: 30px; color: #ffd94a; letter-spacing: 0.08em; }
+  #mission-card p { margin: 6px 0 0; font-size: 15px; color: #f4f1e6; }
+  #over-title { font-size: 40px; }
+  #over-title.busted { color: #7fa8ff; }
+  #over-title.wasted { color: #e5534b; }
+  .upg-row { display: flex; align-items: center; gap: 10px; margin: 12px 0; text-align: left; }
+  .upg-row .upg-info { flex: 1; }
+  .upg-row .upg-name { font-size: 16px; font-weight: 700; color: #f4f1e6; }
+  .upg-row .upg-desc { font-size: 12px; color: #b8b2a0; }
+  .upg-row .upg-level { font-size: 13px; color: #ffd94a; letter-spacing: 2px; }
+  .upg-row .btn { margin: 0; padding: 10px 16px; font-size: 14px; white-space: nowrap; }
+
+  /* ---- touch controls (only on touch devices: body.touch) ---- */
+  #touch-ui { display: none; }
+  body.touch #touch-ui { display: block; }
+  body.touch #hint { display: none; }
+  #joystick { position: fixed; left: 18px; bottom: 22px; width: 128px; height: 128px; border-radius: 50%; background: rgba(16, 18, 26, 0.45); border: 2px solid rgba(244, 241, 230, 0.35); z-index: 8; touch-action: none; }
+  #joy-knob { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: rgba(244, 241, 230, 0.75); border: 2px solid rgba(20, 22, 30, 0.5); pointer-events: none; }
+  .tbtn { position: fixed; z-index: 8; border-radius: 50%; border: 2px solid rgba(244, 241, 230, 0.4); background: rgba(16, 18, 26, 0.55); color: #f4f1e6; font-weight: 700; display: flex; align-items: center; justify-content: center; touch-action: none; user-select: none; -webkit-user-select: none; text-align: center; }
+  .tbtn:active { background: rgba(255, 217, 74, 0.6); }
+  #btn-fire { right: 18px; bottom: 30px; width: 76px; height: 76px; font-size: 15px; background: rgba(229, 83, 75, 0.55); }
+  #btn-punch { right: 106px; bottom: 96px; width: 60px; height: 60px; font-size: 13px; }
+  #btn-enter { right: 30px; bottom: 122px; width: 60px; height: 60px; font-size: 13px; }
+  #btn-weapon { right: 116px; bottom: 28px; width: 56px; height: 56px; font-size: 12px; }
+  #btn-radio { right: 186px; bottom: 84px; width: 52px; height: 52px; font-size: 11px; }
+  #btn-pause { right: 12px; top: 196px; width: 44px; height: 44px; font-size: 16px; border-radius: 10px; }
+
+  /* ---- small screens: compact HUD + minimap, prompt above the buttons ---- */
+  @media (max-width: 700px) {
+    #hud { min-width: 0; width: calc(100vw - 170px); max-width: 250px; padding: 8px 10px; top: 8px; left: 8px; }
+    #hud .label { width: 44px; font-size: 10px; }
+    #money { font-size: 17px; }
+    #stars { font-size: 17px; }
+    #objective { font-size: 12px; }
+    #minimap-wrap { top: 8px; right: 8px; padding: 4px; }
+    #minimap { width: 104px; height: 104px; }
+    #toast { top: 120px; font-size: 14px; padding: 8px 14px; }
+    #prompt { bottom: 180px; font-size: 13px; padding: 7px 12px; max-width: calc(100vw - 30px); white-space: normal; text-align: center; }
+    #mission-card { top: 30%; padding: 14px 20px; }
+    #mission-card h3 { font-size: 24px; }
+    .card h1 { font-size: 34px; }
+    .card { padding: 20px; }
+    #btn-pause { top: 128px; }
+  }
+  @media (max-width: 700px) and (orientation: landscape) {
+    #hud { width: 210px; }
+    #minimap { width: 88px; height: 88px; }
+    #joystick { width: 108px; height: 108px; bottom: 12px; }
+    #btn-fire { bottom: 14px; }
+    #prompt { bottom: 150px; }
+    #btn-pause { top: 112px; }
+  }
 </style>
 </head>
 <body>
-<canvas id="game" aria-label="Block Dodger: move the paddle left and right to dodge falling blocks and catch coins"></canvas>
+<canvas id="game" aria-label="Solmar City 3D: an open-world crime game. Drive, explore, and finish Mama Rosa's jobs."></canvas>
 <p id="status" role="status" aria-live="polite"></p>
+
+<div id="hud" class="panel">
+  <div class="row"><span class="label">HEALTH</span><div id="healthbar"><div id="healthfill"></div></div></div>
+  <div class="row"><span class="label">MONEY</span><span id="money">$0</span></div>
+  <div class="row"><span class="label">WANTED</span><span id="stars"></span></div>
+  <div id="objective"></div>
+  <div id="weapon"></div>
+  <div id="radio-line"></div>
+</div>
+
+<div id="minimap-wrap" class="panel"><canvas id="minimap" width="170" height="170"></canvas></div>
+<div id="toast" class="panel"></div>
+<div id="prompt" class="panel hidden"></div>
+<div id="hint" class="panel">WASD move &nbsp;·&nbsp; E enter / exit car &nbsp;·&nbsp; F punch &nbsp;·&nbsp; 1-4 weapons &nbsp;·&nbsp; Space / click shoot &nbsp;·&nbsp; Shift run &nbsp;·&nbsp; R radio &nbsp;·&nbsp; drag mouse to look &nbsp;·&nbsp; P pause</div>
+
+<div id="touch-ui">
+  <div id="joystick"><div id="joy-knob"></div></div>
+  <div id="btn-fire" class="tbtn">FIRE</div>
+  <div id="btn-punch" class="tbtn">PUNCH</div>
+  <div id="btn-enter" class="tbtn">ENTER</div>
+  <div id="btn-weapon" class="tbtn">WEAPON</div>
+  <div id="btn-radio" class="tbtn">RADIO</div>
+  <div id="btn-pause" class="tbtn">II</div>
+</div>
+
+<div id="mission-card" class="panel"><h3 id="mission-title"></h3><p id="mission-sub"></p></div>
+
+<div id="start-screen" class="overlay">
+  <div class="card panel">
+    <h1>SOLMAR CITY</h1>
+    <h2>AN OPEN-WORLD CRIME STORY — NOW IN 3D</h2>
+    <p>Joey &ldquo;Jinx&rdquo; Calloway just rolled into Solmar City with an empty wallet and a fast right foot. The fixer Mama Rosa has work for a wheelman who asks no questions: eight jobs, from stealing a car to the big one — with the whole Solmar PD, and its helicopter, on your tail.</p>
+    <p class="controls"><b>WASD / joystick</b> move &amp; drive &nbsp;·&nbsp; <b>E</b> enter &amp; exit cars &nbsp;·&nbsp; <b>F</b> punch<br><b>1-4</b> fists / pistol / SMG / shotgun &nbsp;·&nbsp; <b>Space</b> or <b>click</b> shoot &nbsp;·&nbsp; <b>Shift</b> run<br><b>R</b> radio &nbsp;·&nbsp; <b>drag</b> to look around &nbsp;·&nbsp; <b>P</b> pause<br>On your phone: left stick to move, drag the right side to look, big buttons to fight and drive.</p>
+    <button id="btn-start" class="btn">START ENGINE</button>
+    <button id="btn-continue" class="btn ghost hidden">CONTINUE</button>
+  </div>
+</div>
+
+<div id="pause-screen" class="overlay hidden">
+  <div class="card panel">
+    <h1 style="font-size:32px">PAUSED</h1>
+    <p>Solmar City waits for no one. Well — right now it does.</p>
+    <button id="btn-resume" class="btn">RESUME</button>
+    <button id="btn-restart" class="btn ghost">RESTART</button>
+    <button id="btn-quit" class="btn ghost">QUIT TO TITLE</button>
+  </div>
+</div>
+
+<div id="over-screen" class="overlay hidden">
+  <div class="card panel">
+    <h1 id="over-title">BUSTED</h1>
+    <p id="over-text"></p>
+    <p id="over-stats"></p>
+    <button id="btn-again" class="btn">PLAY AGAIN</button>
+    <button id="btn-title" class="btn ghost">TITLE SCREEN</button>
+  </div>
+</div>
+
+<div id="upgrade-screen" class="overlay hidden">
+  <div class="card panel">
+    <h1 style="font-size:28px">MAMA'S GARAGE</h1>
+    <p>Spend your money on the ride. Upgrades stay with you.</p>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Engine <span class="upg-level" id="upg-speed-level"></span></div><div class="upg-desc">+12% top speed &amp; acceleration per level</div></div><button class="btn" id="upg-speed">BUY</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Armor <span class="upg-level" id="upg-armor-level"></span></div><div class="upg-desc">−25% crash &amp; bullet damage to your car per level</div></div><button class="btn" id="upg-armor">BUY</button></div>
+    <div class="upg-row"><div class="upg-info"><div class="upg-name">Handling <span class="upg-level" id="upg-handling-level"></span></div><div class="upg-desc">+15% steering per level</div></div><button class="btn" id="upg-handling">BUY</button></div>
+    <p id="upg-money" style="color:#f2c94c; font-weight:700;"></p>
+    <button id="btn-upg-close" class="btn ghost">CLOSE</button>
+  </div>
+</div>
+
+<script type="importmap">
+  { "imports": { "three": "./vendor/three/three.module.min.js" } }
+</script>
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>
