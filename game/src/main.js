@@ -7,6 +7,8 @@
 // window.__shotReady for a screenshot.
 // 3D rebuild: the same Solmar City, story and missions as the 2D original,
 // now rendered in Three.js with a chase camera, helicopter and garage.
+// The loop owns nothing but timing: every system (cars, actors, heli,
+// missions, audio) steps itself from the same sim state each tick.
 import { STEP, SAVE_KEY, MONEY, WEAPON, WEAPONS, WEAPON_ORDER, WANTED, CAR, WORLD, UPGRADES, UPGRADE_KEYS } from './config.js';
 import { createRandom } from './random.js';
 import { createCity, nearestRoadPoint, roadCenterX, roadCenterY, pointInBuilding } from './world.js';

@@ -27,6 +27,8 @@ import { buildDossier } from './vendor/makefun-game.ts';
 // stale /output is easy to spot.
 const GAME_TITLE = 'Solmar City 3D';
 const GAME_VERSION = '1.0.0';
+const GAME_TAGLINE = 'Eight missions, one helicopter, zero mercy.';
+const GAME_BUILD_DATE = '2026-11-18';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
@@ -36,7 +38,7 @@ cpSync(join(here, 'game'), join(out, 'game'), { recursive: true });
 mkdirSync(join(out, 'screenshots'), { recursive: true });
 if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
 
-console.log(`${GAME_TITLE} v${GAME_VERSION} -> ${out}`);
+console.log(`${GAME_TITLE} v${GAME_VERSION} (${GAME_BUILD_DATE}) — ${GAME_TAGLINE} -> ${out}`);
 
 // The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
 // scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files in game/ or 48 MiB of game

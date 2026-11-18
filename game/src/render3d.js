@@ -3,6 +3,8 @@
 // mesh.rotation.y = -simAngle. Ground is y=0. No shadows (swiftshader perf).
 // The camera is a third-person chase cam: it orbits on mouse/touch drag and
 // eases back behind the player (or the car) instead of snapping.
+// Meshes are synced from sim state every frame; nothing in here decides
+// gameplay, it only paints what the sim already did.
 import * as THREE from 'three';
 import { WORLD } from './config.js';
 

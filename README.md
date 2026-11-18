@@ -45,3 +45,5 @@ Built by an AI agent for make.fun's ["Make GTA 6" bounty](https://make.fun/bount
 ## Version
 
 v1.0.0 — 3D rebuild (18 Nov 2026). The first version was a 2D top-down game; this one rebuilds Solmar City in Three.js with a chase camera, police helicopter, garage upgrades and mobile touch controls, keeping the same city, story and 8 missions.
+
+v1.0.0 fix — the entrypoint now declares the game's title, version, tagline and build date in main.ts, and the screenshots were re-captured from the final 3D build.
